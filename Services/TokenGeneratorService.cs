@@ -1,27 +1,36 @@
-﻿using Microsoft.IdentityModel.JsonWebTokens;
+﻿using System.Text;
+using IntroductionToAPI.Options;
+using Microsoft.Extensions.Options;
+using Microsoft.IdentityModel.JsonWebTokens;
 using Microsoft.IdentityModel.Tokens;
 using System.Security.Claims;
-using System.Text;
 
 namespace IntroductionToAPI.Services
 {
     public class TokenGeneratorService : ITokenGeneratorService
     {
         private readonly IConfiguration configuration;
+        private readonly JwtModelOption jwtModelOption;
 
-        public TokenGeneratorService(IConfiguration configuration)
+        public TokenGeneratorService(
+            IConfiguration configuration,
+            IOptions<JwtModelOption> option)
         {
             this.configuration = configuration;
+            jwtModelOption = option.Value;
         }
 
-        public string GenerateToken(string username, string password)
+        public string GenerateToken(
+            string username, string password)
         {
-            var secretKey = configuration["Jwt:Secret"]!;
+            var secretKey = jwtModelOption.Secret;
 
-            var securityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secretKey));
+            var securityKey =
+                new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secretKey));
 
             var credentials
-                 = new SigningCredentials(securityKey, SecurityAlgorithms.HmacSha256);
+                 = new SigningCredentials(securityKey,
+                    SecurityAlgorithms.HmacSha256);
 
             var tokenDescriptor
                  = new SecurityTokenDescriptor
@@ -31,16 +40,14 @@ namespace IntroductionToAPI.Services
                             new Claim(ClaimTypes.Role,"Admin"),
                             new Claim("user-function","123")
                          ]),
-                     Expires = DateTime.UtcNow.AddMinutes(Convert.ToInt32(configuration["Jwt:TokenExpiryInMinutes"])),
+                     Expires = DateTime.UtcNow.AddMinutes(
+                             jwtModelOption.TokenExpiryInMinutes),
                      SigningCredentials = credentials,
-                     Issuer = configuration["Jwt:Issuer"],
-                     Audience = configuration["Jwt:Audience"]
-
+                     Issuer = jwtModelOption.Issuer,
+                     Audience = jwtModelOption.Audience,
                  };
-
             var tokenHandler = new JsonWebTokenHandler();
             var token = tokenHandler.CreateToken(tokenDescriptor);  // jwt
-
             return token;
 
 

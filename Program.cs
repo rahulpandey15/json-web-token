@@ -1,4 +1,5 @@
 
+using IntroductionToAPI.Options;
 using IntroductionToAPI.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
@@ -21,13 +22,16 @@ public class Program
 
         builder.Services.AddOpenApi();
 
+        builder.Services.AddOptions<JwtModelOption>()
+            .Bind(builder.Configuration.GetSection("Jwt"));
+
         builder.Services.AddScoped<ITokenGeneratorService, TokenGeneratorService>();
 
         builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             .AddJwtBearer(options =>
             {
                 options.RequireHttpsMetadata = false;
-                options.TokenValidationParameters = new Microsoft.IdentityModel.Tokens.TokenValidationParameters()
+                options.TokenValidationParameters = new TokenValidationParameters()
                 {
                     IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Secret"]!)),
                     ValidIssuer = builder.Configuration["Jwt:Issuer"],
