@@ -1,5 +1,7 @@
-﻿using IntroductionToAPI.Services;
+﻿using IntroductionToAPI.Models.Request;
+using IntroductionToAPI.Services;
 using Microsoft.AspNetCore.Mvc;
+using System.Threading.Tasks;
 
 namespace IntroductionToAPI.Controllers
 {
@@ -15,12 +17,12 @@ namespace IntroductionToAPI.Controllers
         }
 
 
-        [HttpGet]
-        [Route("generate/{userName}/{password}")]
-        public IActionResult Get(string userName, string password)
+        [HttpPost]
+        [Route("generate")]
+        public async Task<IActionResult> Get([FromBody] TokenRequestDto request)
         {
-            var accessToken 
-                = tokenGeneratorService.GenerateToken(userName, password);
+            var accessToken
+                = await tokenGeneratorService.GenerateToken(request.UserName, request.Password);
 
             if (accessToken is not null)
             {

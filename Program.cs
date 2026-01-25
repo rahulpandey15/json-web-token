@@ -35,6 +35,8 @@ public class Program
 
         builder.Services.AddScoped<ITokenGeneratorService, TokenGeneratorService>();
         builder.Services.AddScoped<ITokenRepository, TokenRepository>();
+        builder.Services.AddScoped<IEmployeeService, EmployeeService>();
+
 
 
         builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
