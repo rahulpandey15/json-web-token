@@ -11,31 +11,32 @@ namespace IntroductionToAPI.Services
 {
     public class TokenGeneratorService : ITokenGeneratorService
     {
-        private readonly IEmployeeService employeeService;
+        private readonly IUserService userService;
         private readonly JwtModelOption jwtModelOption;
 
         public TokenGeneratorService(
-            IEmployeeService employeeService,
+            IUserService userService,
             IOptions<JwtModelOption> option)
         {
-            this.employeeService = employeeService;
+            this.userService = userService;
             jwtModelOption = option.Value;
         }
 
         public async Task<TokenResponseDto> GenerateToken(
             string username, string password)
         {
-            var employeeDetails
-                 = await employeeService.GetEmployeeAsync(username, password);
+            var userDetails
+                 = await userService.GetEmployeeAsync(username, password);
 
-            if (employeeDetails == null)
-                return null;
-            return GenerateToken(employeeDetails);
+            if (userDetails == null)
+                throw new Exception("Invalid UserName or Password");
+
+            return GenerateToken(userDetails);
 
         }
 
         private TokenResponseDto GenerateToken(
-            Employee employeeDetails)
+            User userDetails)
         {
             var secretKey = jwtModelOption.Secret;
 
@@ -51,7 +52,7 @@ namespace IntroductionToAPI.Services
                  {
                      Subject = new System.Security.Claims.ClaimsIdentity(new[]
                     {
-                        new Claim(ClaimTypes.Name, employeeDetails.UserName),
+                        new Claim(ClaimTypes.Name, userDetails.UserName),
                         new Claim(ClaimTypes.Role, "Admin"),
                         new Claim("user-function", "123")
                     }),
@@ -64,7 +65,14 @@ namespace IntroductionToAPI.Services
             var tokenHandler = new JsonWebTokenHandler();
             var token = tokenHandler.CreateToken(tokenDescriptor);  // jwt
 
-            return new TokenResponseDto(token, "");
+            return new TokenResponseDto(token, GenerateRefreshToken(userDetails));
+        }
+
+
+        private string GenerateRefreshToken(User user)
+        {
+            var tokenInformation = string.Concat(user.UserName, user.FirstName);
+            return BCrypt.Net.BCrypt.HashPassword(tokenInformation);
         }
     }
 }

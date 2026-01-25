@@ -13,7 +13,7 @@ namespace IntroductionToAPI.Repository
             this.dbContext = dbContext;
         }
 
-        public Task<Employee> ValidateEmployeeAsync(
+        public Task<User> ValidateEmployeeAsync(
             string userName, string password)
         {
             return dbContext

@@ -35,7 +35,7 @@ public class Program
 
         builder.Services.AddScoped<ITokenGeneratorService, TokenGeneratorService>();
         builder.Services.AddScoped<ITokenRepository, TokenRepository>();
-        builder.Services.AddScoped<IEmployeeService, EmployeeService>();
+        builder.Services.AddScoped<IUserService, UserService>();
 
 
 
@@ -83,11 +83,11 @@ public class Program
             {
                 db.Employees.AddRange(new[]
                 {
-                    new Employee { 
+                    new User { 
                         UserName = "john@gmail.com", 
                         Password = "password@123", 
                         FirstName = "John", LastName = "Doe", Gender = "Male" },
-                    new Employee
+                    new User
                     {
                         UserName = "jane@gmail.com",
                         Password = "password@123",
@@ -95,7 +95,7 @@ public class Program
                         LastName = "Smith",
                         Gender = "Female"
                     },
-                    new Employee 
+                    new User 
                     { 
                         UserName = "bob@gmail.com", 
                         Password = "password@123", 
@@ -103,7 +103,7 @@ public class Program
                         LastName = "Johnson", 
                         Gender = "Male" 
                     },
-                    new Employee 
+                    new User 
                     { 
                         UserName = "alice@gmail.com", 
                         Password = "password@123", 
@@ -111,7 +111,7 @@ public class Program
                         LastName = "Williams", 
                         Gender = "Female" 
                     },
-                    new Employee 
+                    new User 
                     { 
                         UserName = "charlie@gmail.com", 
                         Password = "password@123", 
