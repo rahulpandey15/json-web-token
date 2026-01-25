@@ -1,12 +1,8 @@
-
-using IntroductionToAPI.Options;
-using IntroductionToAPI.Services;
-using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.IdentityModel.Tokens;
 using System.Text;
-using Microsoft.EntityFrameworkCore;
 using IntroductionToAPI.Data;
-using IntroductionToAPI.Repository;
+using IntroductionToAPI.Options;
+using Microsoft.IdentityModel.Tokens;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 
 namespace IntroductionToAPI;
 
@@ -16,28 +12,14 @@ public class Program
     {
         var builder = WebApplication.CreateBuilder(args);
 
-        // Add services to the container.
-
         builder.Services.AddControllers();
-        // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
-
         builder.Services.AddSwaggerGen();
-
         builder.Services.AddOpenApi();
 
+        builder.Services.RegisterDatabase(builder.Configuration);
 
         builder.Services.AddOptions<JwtModelOption>()
             .Bind(builder.Configuration.GetSection("Jwt"));
-
-        // Register EF Core InMemory database
-        builder.Services.AddDbContext<IntroductionToAPI.Data.ApplicationDbContext>(options =>
-            options.UseInMemoryDatabase("InMemoryAppDb"));
-
-        builder.Services.AddScoped<ITokenGeneratorService, TokenGeneratorService>();
-        builder.Services.AddScoped<ITokenRepository, TokenRepository>();
-        builder.Services.AddScoped<IUserService, UserService>();
-
-
 
         builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             .AddJwtBearer(options =>
@@ -61,7 +43,6 @@ public class Program
         if (app.Environment.IsDevelopment())
         {
             app.MapOpenApi();
-
             app.UseSwagger();
             app.UseSwaggerUI();
         }
@@ -69,7 +50,6 @@ public class Program
         app.UseHttpsRedirection();
         app.UseAuthentication();
         app.UseAuthorization();
-
 
         app.MapControllers();
 
