@@ -1,7 +1,12 @@
-﻿namespace IntroductionToAPI.Services
+﻿using IntroductionToAPI.Models.Response;
+
+namespace IntroductionToAPI.Services
 {
     public interface ITokenGeneratorService
     {
-        string GenerateToken(string username, string password);
+
+
+
+        Task<TokenResponseDto> GenerateToken(string username, string password);
     }
 }

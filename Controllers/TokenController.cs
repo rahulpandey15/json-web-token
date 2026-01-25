@@ -17,17 +17,15 @@ namespace IntroductionToAPI.Controllers
 
         [HttpGet]
         [Route("generate/{userName}/{password}")]
-        public IActionResult Get(string userName,string password)
+        public IActionResult Get(string userName, string password)
         {
-            // this should be validated against database
-            if(userName == "user@123" || password == "password@123")
+            var accessToken 
+                = tokenGeneratorService.GenerateToken(userName, password);
+
+            if (accessToken is not null)
             {
-                var accessToken = tokenGeneratorService.GenerateToken(userName, password);
-
-                return Ok(accessToken); 
-
+                return Ok(accessToken);
             }
-
             return Unauthorized(""); // 401
         }
 
