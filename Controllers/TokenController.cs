@@ -1,6 +1,5 @@
 ﻿using IntroductionToAPI.Models.Request;
 using IntroductionToAPI.Services;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace IntroductionToAPI.Controllers
@@ -24,7 +23,7 @@ namespace IntroductionToAPI.Controllers
         public async Task<IActionResult> Refresh([FromBody] RefreshTokenRequestDto request)
         {
             var response
-                 = await tokenGeneratorService.GenerateRefreshToken(request);
+                 = await tokenGeneratorService.GenerateRefreshTokenAsync(request);
 
             return Ok(response);
         }

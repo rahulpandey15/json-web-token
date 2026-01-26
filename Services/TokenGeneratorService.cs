@@ -7,44 +7,62 @@ using Microsoft.IdentityModel.Tokens;
 using IntroductionToAPI.Models.Response;
 using IntroductionToAPI.Models.Request;
 using Microsoft.IdentityModel.JsonWebTokens;
+using System.IdentityModel.Tokens.Jwt;
+using IntroductionToAPI.Repository;
 
 namespace IntroductionToAPI.Services
 {
     public class TokenGeneratorService : ITokenGeneratorService
     {
-        private readonly IUserService userService;
-        private readonly JwtModelOption jwtModelOption;
+        private readonly IUserService _userService;
+        private readonly JwtModelOption _jwtModelOption;
+        private readonly ITokenRepository _tokenRepository;
+        private readonly IUserRepository _userRepository;
 
         public TokenGeneratorService(
             IUserService userService,
-            IOptions<JwtModelOption> option)
+            IOptions<JwtModelOption> option,
+            ITokenRepository tokenRepository,
+            IUserRepository userRepository)
         {
-            this.userService = userService;
-            jwtModelOption = option.Value;
+            _userService = userService;
+            _jwtModelOption = option.Value;
+            _tokenRepository = tokenRepository;
+            _userRepository = userRepository;
         }
 
         public async Task<TokenResponseDto> GenerateToken(
             string username, string password)
         {
             var userDetails
-                 = await userService.GetEmployeeAsync(username, password);
+                 = await _userService.GetEmployeeAsync(username, password);
 
             if (userDetails == null)
                 throw new Exception("Invalid UserName or Password");
 
-            var tokenResponseDto = GenerateToken(userDetails);
-
-            await userService.PersistUserTokenAsync(
-                    userDetails.Id, tokenResponseDto.refreshToken);
-
-            return tokenResponseDto;
+            return await GenerateTokenAsync(userDetails);
 
         }
 
-        private TokenResponseDto GenerateToken(
+        private async Task PersistRefreshToken(
+            User userDetails,
+            TokenResponseDto tokenResponseDto)
+        {
+            await _tokenRepository.PersistRefreshTokenAsync(
+                new RefreshToken()
+                {
+                    ExpiryTime = DateTime.UtcNow.AddDays(7), // from config
+                    IsRevoked = false,
+                    GeneratedTime = DateTime.UtcNow,
+                    Token = tokenResponseDto.refreshToken,
+                    UserId = userDetails.Id
+                });
+        }
+
+        private async Task<TokenResponseDto> GenerateTokenAsync(
             User userDetails)
         {
-            var secretKey = jwtModelOption.Secret;
+            var secretKey = _jwtModelOption.Secret;
 
             var securityKey =
                 new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secretKey));
@@ -64,36 +82,80 @@ namespace IntroductionToAPI.Services
                         new Claim("user-function", "123")
                     ]),
                      Expires = DateTime.UtcNow.AddMinutes(
-                             jwtModelOption.TokenExpiryInMinutes),
+                             _jwtModelOption.TokenExpiryInMinutes),
                      SigningCredentials = credentials,
-                     Issuer = jwtModelOption.Issuer,
-                     Audience = jwtModelOption.Audience,
+                     Issuer = _jwtModelOption.Issuer,
+                     Audience = _jwtModelOption.Audience,
                  };
             var tokenHandler = new JsonWebTokenHandler();
             var token = tokenHandler.CreateToken(tokenDescriptor);  // jwt
 
-            return new TokenResponseDto(token, GenerateRefreshToken(userDetails));
+            var tokenResponse = new TokenResponseDto(token, GenerateRefreshToken(userDetails));
+
+            await PersistRefreshToken(userDetails, tokenResponse);
+
+            return tokenResponse;
         }
 
 
         private string GenerateRefreshToken(User user)
         {
             var tokenInformation = string.Concat(user.UserName, user.FirstName);
+
             return BCrypt.Net.BCrypt.HashPassword(tokenInformation);
         }
 
-        public async Task<TokenResponseDto> GenerateRefreshToken(RefreshTokenRequestDto refresh)
+        public async Task<TokenResponseDto> GenerateRefreshTokenAsync(
+            RefreshTokenRequestDto refreshTokenRequest)
         {
             // Validate access token 
+            var claimPrincipal = GetTokenPrincipal(refreshTokenRequest.AccessToken);
+
+            if (claimPrincipal == null) throw new Exception("Access token is invalid");
+
+
             // validate refresh token
+            int userId = Convert.ToInt32(claimPrincipal.Claims.FirstOrDefault(x => x.Type == "UserId").Value);
+
+            bool isValidRefreshToken =
+                await _tokenRepository.IsRefreshTokenValidAsync(refreshTokenRequest.RefreshToken, userId);
+
+            if (!isValidRefreshToken) throw new Exception("Refresh token is not valid");
 
 
-            // generate new access token and refres tokem 
+            var userDetails = await _userRepository.FindUserAsync(userId);
+
+            return await GenerateTokenAsync(userDetails);
+        }
 
 
+        private ClaimsPrincipal GetTokenPrincipal(string accessToken)
+        {
+            var tokenHandler = new JwtSecurityTokenHandler();
+            var secretKey = _jwtModelOption.Secret;
+
+            var securityKey =
+                new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secretKey));
 
 
-            return await Task.FromResult(new TokenResponseDto("", ""));
+            var tokenValidator = TokenValidationParameters(securityKey);
+
+            return tokenHandler.ValidateToken(accessToken, tokenValidator, out _);
+        }
+
+        private TokenValidationParameters TokenValidationParameters(
+            SymmetricSecurityKey securityKey)
+        {
+            return new TokenValidationParameters
+            {
+                ValidateIssuer = true,
+                ValidateAudience = true,
+                ValidateIssuerSigningKey = true,
+                ValidIssuer = _jwtModelOption.Issuer,
+                ValidAudience = _jwtModelOption.Audience,
+                IssuerSigningKey = securityKey,
+                ValidateLifetime = false
+            };
         }
     }
 }

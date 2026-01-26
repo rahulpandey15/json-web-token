@@ -6,6 +6,5 @@ namespace IntroductionToAPI.Services
     {
         Task<User> GetEmployeeAsync(string userName, string password);
 
-        Task<bool> PersistUserTokenAsync(int userId, string refreshToken);
     }
 }

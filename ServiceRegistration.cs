@@ -23,7 +23,9 @@ namespace IntroductionToAPI
                 services.AddScoped<ITokenGeneratorService, TokenGeneratorService>();
                 services.AddScoped<ITokenRepository, TokenRepository>();
                 services.AddScoped<IUserService, UserService>();
-            
+                services.AddScoped<IUserRepository, UserRepository>();
+
+
 
                 return services;
             }

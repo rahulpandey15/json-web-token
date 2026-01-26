@@ -3,26 +3,31 @@ using Microsoft.EntityFrameworkCore;
 
 namespace IntroductionToAPI.Repository
 {
-    public class TokenRepository(ApplicationDbContext dbContext) : ITokenRepository
+    public class TokenRepository(ApplicationDbContext _dbContext) : ITokenRepository
     {
-        private readonly ApplicationDbContext _dbContext = dbContext;
+        public Task<bool> IsRefreshTokenValidAsync(
+            string refreshToken, 
+            int userId)
+        {
+            return _dbContext
+                     .UserTokens
+                     .AnyAsync(
+                             x => x.Token == refreshToken
+                             && x.UserId == userId
+                             && x.ExpiryTime >= DateTime.UtcNow
+                             && x.IsRevoked == false
+                         );
+        }
+
 
         public async Task<bool> PersistRefreshTokenAsync(
             RefreshToken token)
         {
             await _dbContext.UserTokens.AddAsync(token);
+
             return await _dbContext.SaveChangesAsync() > 0;
         }
 
-        public async Task<User> ValidateEmployeeAsync(
-            string userName, string password)
-        {
-            var userDetails
-                = await _dbContext.Users
-                    .FirstOrDefaultAsync(
-                        x => x.UserName == userName && x.Password == password);
-
-            return userDetails;
-        }
+      
     }
 }

@@ -8,6 +8,6 @@ namespace IntroductionToAPI.Services
 
         Task<TokenResponseDto> GenerateToken(string username, string password);
 
-        Task<TokenResponseDto> GenerateRefreshToken(RefreshTokenRequestDto refresh);
+        Task<TokenResponseDto> GenerateRefreshTokenAsync(RefreshTokenRequestDto refresh);
     }
 }
