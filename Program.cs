@@ -3,6 +3,7 @@ using IntroductionToAPI.Data;
 using IntroductionToAPI.Options;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.EntityFrameworkCore;
 
 namespace IntroductionToAPI;
 
@@ -54,12 +55,25 @@ public class Program
 
         app.MapControllers();
 
-        // Seed in-memory database with five employees
+        // Apply database migrations on startup
         using (var scope = app.Services.CreateScope())
         {
             var scopedServices = scope.ServiceProvider;
             var db = scopedServices.GetRequiredService<ApplicationDbContext>();
 
+            try
+            {
+                // Apply pending migrations
+                db.Database.Migrate();
+            }
+            catch (Exception ex)
+            {
+                var logger = scopedServices.GetRequiredService<ILogger<Program>>();
+                logger.LogError(ex, "An error occurred while migrating the database.");
+                throw;
+            }
+
+            // Seed database with five employees
             if (!db.Users.Any())
             {
                 db.Users.AddRange(new[]
