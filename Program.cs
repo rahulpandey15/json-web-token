@@ -16,6 +16,7 @@ public class Program
         builder.Services.AddSwaggerGen();
         builder.Services.AddOpenApi();
 
+        builder.Services.RegisterService();
         builder.Services.RegisterDatabase(builder.Configuration);
 
         builder.Services.AddOptions<JwtModelOption>()
@@ -59,9 +60,9 @@ public class Program
             var scopedServices = scope.ServiceProvider;
             var db = scopedServices.GetRequiredService<ApplicationDbContext>();
 
-            if (!db.Employees.Any())
+            if (!db.Users.Any())
             {
-                db.Employees.AddRange(new[]
+                db.Users.AddRange(new[]
                 {
                     new User { 
                         UserName = "john@gmail.com", 

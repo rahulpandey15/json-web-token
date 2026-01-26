@@ -10,7 +10,7 @@
         {
         }
 
-        public DbSet<User> Employees { get; set; }
+        public DbSet<User> Users { get; set; }
 
         public DbSet<RefreshToken> UserTokens { get; set; }
     }
