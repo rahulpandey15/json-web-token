@@ -1,11 +1,12 @@
 ﻿using System.Text;
+using System.Security.Claims;
+using IntroductionToAPI.Data;
 using IntroductionToAPI.Options;
 using Microsoft.Extensions.Options;
-using Microsoft.IdentityModel.JsonWebTokens;
 using Microsoft.IdentityModel.Tokens;
-using System.Security.Claims;
 using IntroductionToAPI.Models.Response;
-using IntroductionToAPI.Data;
+using IntroductionToAPI.Models.Request;
+using Microsoft.IdentityModel.JsonWebTokens;
 
 namespace IntroductionToAPI.Services
 {
@@ -31,7 +32,12 @@ namespace IntroductionToAPI.Services
             if (userDetails == null)
                 throw new Exception("Invalid UserName or Password");
 
-            return GenerateToken(userDetails);
+            var tokenResponseDto = GenerateToken(userDetails);
+
+            await userService.PersistUserTokenAsync(
+                    userDetails.Id, tokenResponseDto.refreshToken);
+
+            return tokenResponseDto;
 
         }
 
@@ -50,12 +56,13 @@ namespace IntroductionToAPI.Services
             var tokenDescriptor
                  = new SecurityTokenDescriptor
                  {
-                     Subject = new System.Security.Claims.ClaimsIdentity(new[]
-                    {
+                     Subject = new ClaimsIdentity(
+                    [
                         new Claim(ClaimTypes.Name, userDetails.UserName),
+                        new Claim("UserId",userDetails.Id.ToString()),
                         new Claim(ClaimTypes.Role, "Admin"),
                         new Claim("user-function", "123")
-                    }),
+                    ]),
                      Expires = DateTime.UtcNow.AddMinutes(
                              jwtModelOption.TokenExpiryInMinutes),
                      SigningCredentials = credentials,
@@ -73,6 +80,20 @@ namespace IntroductionToAPI.Services
         {
             var tokenInformation = string.Concat(user.UserName, user.FirstName);
             return BCrypt.Net.BCrypt.HashPassword(tokenInformation);
+        }
+
+        public async Task<TokenResponseDto> GenerateRefreshToken(RefreshTokenRequestDto refresh)
+        {
+            // Validate access token 
+            // validate refresh token
+
+
+            // generate new access token and refres tokem 
+
+
+
+
+            return await Task.FromResult(new TokenResponseDto("", ""));
         }
     }
 }

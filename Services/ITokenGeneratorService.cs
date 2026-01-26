@@ -1,4 +1,5 @@
-﻿using IntroductionToAPI.Models.Response;
+﻿using IntroductionToAPI.Models.Request;
+using IntroductionToAPI.Models.Response;
 
 namespace IntroductionToAPI.Services
 {
@@ -6,5 +7,7 @@ namespace IntroductionToAPI.Services
     {
 
         Task<TokenResponseDto> GenerateToken(string username, string password);
+
+        Task<TokenResponseDto> GenerateRefreshToken(RefreshTokenRequestDto refresh);
     }
 }

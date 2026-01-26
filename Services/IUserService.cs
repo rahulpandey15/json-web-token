@@ -5,5 +5,7 @@ namespace IntroductionToAPI.Services
     public interface IUserService
     {
         Task<User> GetEmployeeAsync(string userName, string password);
+
+        Task<bool> PersistUserTokenAsync(int userId, string refreshToken);
     }
 }

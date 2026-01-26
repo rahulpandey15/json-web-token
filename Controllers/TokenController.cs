@@ -23,7 +23,10 @@ namespace IntroductionToAPI.Controllers
         [Route("refresh")]
         public async Task<IActionResult> Refresh([FromBody] RefreshTokenRequestDto request)
         {
-            return Ok(request);
+            var response
+                 = await tokenGeneratorService.GenerateRefreshToken(request);
+
+            return Ok(response);
         }
 
     }
