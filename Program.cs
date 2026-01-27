@@ -1,9 +1,9 @@
-
-using IntroductionToAPI.Options;
-using IntroductionToAPI.Services;
-using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.IdentityModel.Tokens;
 using System.Text;
+using IntroductionToAPI.Data;
+using IntroductionToAPI.Options;
+using Microsoft.IdentityModel.Tokens;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.EntityFrameworkCore;
 
 namespace IntroductionToAPI;
 
@@ -13,19 +13,15 @@ public class Program
     {
         var builder = WebApplication.CreateBuilder(args);
 
-        // Add services to the container.
-
         builder.Services.AddControllers();
-        // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
-
         builder.Services.AddSwaggerGen();
-
         builder.Services.AddOpenApi();
+
+        builder.Services.RegisterService();
+        builder.Services.RegisterDatabase(builder.Configuration);
 
         builder.Services.AddOptions<JwtModelOption>()
             .Bind(builder.Configuration.GetSection("Jwt"));
-
-        builder.Services.AddScoped<ITokenGeneratorService, TokenGeneratorService>();
 
         builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             .AddJwtBearer(options =>
@@ -49,7 +45,6 @@ public class Program
         if (app.Environment.IsDevelopment())
         {
             app.MapOpenApi();
-
             app.UseSwagger();
             app.UseSwaggerUI();
         }
@@ -58,8 +53,72 @@ public class Program
         app.UseAuthentication();
         app.UseAuthorization();
 
-
         app.MapControllers();
+
+        // Apply database migrations on startup
+        using (var scope = app.Services.CreateScope())
+        {
+            var scopedServices = scope.ServiceProvider;
+            var db = scopedServices.GetRequiredService<ApplicationDbContext>();
+
+            try
+            {
+                // Apply pending migrations
+                db.Database.Migrate();
+            }
+            catch (Exception ex)
+            {
+                var logger = scopedServices.GetRequiredService<ILogger<Program>>();
+                logger.LogError(ex, "An error occurred while migrating the database.");
+                throw;
+            }
+
+            // Seed database with five employees
+            if (!db.Users.Any())
+            {
+                db.Users.AddRange(new[]
+                {
+                    new User { 
+                        UserName = "john@gmail.com", 
+                        Password = "password@123", 
+                        FirstName = "John", LastName = "Doe", Gender = "Male" },
+                    new User
+                    {
+                        UserName = "jane@gmail.com",
+                        Password = "password@123",
+                        FirstName = "Jane",
+                        LastName = "Smith",
+                        Gender = "Female"
+                    },
+                    new User 
+                    { 
+                        UserName = "bob@gmail.com", 
+                        Password = "password@123", 
+                        FirstName = "Bob", 
+                        LastName = "Johnson", 
+                        Gender = "Male" 
+                    },
+                    new User 
+                    { 
+                        UserName = "alice@gmail.com", 
+                        Password = "password@123", 
+                        FirstName = "Alice", 
+                        LastName = "Williams", 
+                        Gender = "Female" 
+                    },
+                    new User 
+                    { 
+                        UserName = "charlie@gmail.com", 
+                        Password = "password@123", 
+                        FirstName = "Charlie", 
+                        LastName = "Brown", 
+                        Gender = "Male" 
+                    }
+                });
+
+                db.SaveChanges();
+            }
+        }
 
         app.Run();
     }

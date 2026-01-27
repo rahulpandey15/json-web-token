@@ -1,34 +1,31 @@
-﻿using IntroductionToAPI.Services;
+﻿using IntroductionToAPI.Models.Request;
+using IntroductionToAPI.Services;
 using Microsoft.AspNetCore.Mvc;
 
 namespace IntroductionToAPI.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
-    public class TokenController : Controller
+    public class TokenController(ITokenGeneratorService tokenGeneratorService) : Controller
     {
-        private readonly ITokenGeneratorService tokenGeneratorService;
-
-        public TokenController(ITokenGeneratorService tokenGeneratorService)
+        [HttpPost]
+        [Route("generate")]
+        public async Task<IActionResult> Generate([FromBody] TokenRequestDto request)
         {
-            this.tokenGeneratorService = tokenGeneratorService;
+            var accessToken
+                = await tokenGeneratorService.GenerateToken(request.UserName, request.Password);
+
+            return accessToken != null ? Ok(accessToken) : Unauthorized("");
         }
-
-
-        [HttpGet]
-        [Route("generate/{userName}/{password}")]
-        public IActionResult Get(string userName,string password)
+        
+        [HttpPost]
+        [Route("refresh")]
+        public async Task<IActionResult> Refresh([FromBody] RefreshTokenRequestDto request)
         {
-            // this should be validated against database
-            if(userName == "user@123" || password == "password@123")
-            {
-                var accessToken = tokenGeneratorService.GenerateToken(userName, password);
+            var response
+                 = await tokenGeneratorService.GenerateRefreshTokenAsync(request);
 
-                return Ok(accessToken); 
-
-            }
-
-            return Unauthorized(""); // 401
+            return Ok(response);
         }
 
     }
