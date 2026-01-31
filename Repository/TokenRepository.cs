@@ -27,7 +27,5 @@ namespace IntroductionToAPI.Repository
 
             return await _dbContext.SaveChangesAsync() > 0;
         }
-
-      
     }
 }
