@@ -115,14 +115,16 @@ namespace IntroductionToAPI.Services
 
 
             // validate refresh token
-            int userId = Convert.ToInt32(claimPrincipal.Claims.FirstOrDefault(x => x.Type == "UserId").Value);
+            int userId =
+                Convert.ToInt32(claimPrincipal.Claims.FirstOrDefault(
+                        x => x.Type == "UserId")!.Value);
 
             bool isValidRefreshToken =
-                await _tokenRepository.IsRefreshTokenValidAsync(refreshTokenRequest.RefreshToken, userId);
+                await _tokenRepository.IsRefreshTokenValidAsync(
+                        refreshTokenRequest.RefreshToken, userId);
 
             if (!isValidRefreshToken) throw new Exception("Refresh token is not valid");
-
-
+            
             var userDetails = await _userRepository.FindUserAsync(userId);
 
             return await GenerateTokenAsync(userDetails);
