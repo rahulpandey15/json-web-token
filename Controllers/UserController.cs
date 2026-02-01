@@ -1,25 +1,28 @@
-﻿using Microsoft.AspNetCore.Authorization;
+﻿using IntroductionToAPI.Data;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 
 namespace IntroductionToAPI.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
     [Authorize]
-    public class EmployeeController : ControllerBase
+    public class UserController : ControllerBase
     {
+        private readonly ApplicationDbContext _context;
+
+        public UserController(ApplicationDbContext context)
+        {
+            _context = context;
+        }
 
         [HttpGet]
-        public IActionResult Get()
+        public async Task<IActionResult> Get()
         {
-            var employeeDetails
-                 = new
-                 {
-                     FirstName = "Rahul",
-                     LastName = "Pandey"
-                 };
-
-            return Ok(employeeDetails);
+            var userList
+                = await _context.Users.ToListAsync();
+            return Ok(userList);
         }
 
 
