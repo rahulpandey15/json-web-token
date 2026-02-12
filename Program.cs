@@ -4,6 +4,8 @@ using IntroductionToAPI.Options;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
+using IntroductionToAPI.Filters;
+using IntroductionToAPI.Middleware;
 
 namespace IntroductionToAPI;
 
@@ -13,7 +15,11 @@ public class Program
     {
         var builder = WebApplication.CreateBuilder(args);
 
-        builder.Services.AddControllers();
+        builder.Services.AddControllers(options =>
+        {
+            options.Filters.Add<SampleFilter>();
+        });
+
         builder.Services.AddSwaggerGen();
         builder.Services.AddOpenApi();
 
@@ -41,6 +47,9 @@ public class Program
 
         var app = builder.Build();
 
+        app.UseMiddleware<SampleMiddleware>();
+
+
         // Configure the HTTP request pipeline.
         if (app.Environment.IsDevelopment())
         {
@@ -50,6 +59,8 @@ public class Program
         }
 
         app.UseHttpsRedirection();
+
+
         app.UseAuthentication();
         app.UseAuthorization();
 
