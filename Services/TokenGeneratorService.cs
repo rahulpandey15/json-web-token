@@ -78,7 +78,7 @@ namespace IntroductionToAPI.Services
                     [
                         new Claim(ClaimTypes.Name, userDetails.UserName),
                         new Claim("UserId",userDetails.Id.ToString()),
-                        new Claim(ClaimTypes.Role, "Admin"),
+                        new Claim(ClaimTypes.Role, "Admin"), // hard coded
                         new Claim("user-function", "123")
                     ]),
                      Expires = DateTime.UtcNow.AddMinutes(
