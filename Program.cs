@@ -1,11 +1,11 @@
 using System.Text;
 using IntroductionToAPI.Data;
 using IntroductionToAPI.Options;
-using Microsoft.IdentityModel.Tokens;
-using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.EntityFrameworkCore;
 using IntroductionToAPI.Filters;
 using IntroductionToAPI.Middleware;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 
 namespace IntroductionToAPI;
 
@@ -92,14 +92,19 @@ public class Program
                     new User { 
                         UserName = "john@gmail.com", 
                         Password = "password@123", 
-                        FirstName = "John", LastName = "Doe", Gender = "Male" },
+                        FirstName = "John", 
+                        LastName = "Doe", 
+                        Gender = "Male",
+                        Role = "Admin",
+                    },
                     new User
                     {
                         UserName = "jane@gmail.com",
                         Password = "password@123",
                         FirstName = "Jane",
                         LastName = "Smith",
-                        Gender = "Female"
+                        Gender = "Female",
+                        Role="User"
                     },
                     new User 
                     { 
@@ -107,7 +112,8 @@ public class Program
                         Password = "password@123", 
                         FirstName = "Bob", 
                         LastName = "Johnson", 
-                        Gender = "Male" 
+                        Gender = "Male" ,
+                        Role = "User"
                     },
                     new User 
                     { 
@@ -115,7 +121,8 @@ public class Program
                         Password = "password@123", 
                         FirstName = "Alice", 
                         LastName = "Williams", 
-                        Gender = "Female" 
+                        Gender = "Female" ,
+                        Role="User"
                     },
                     new User 
                     { 
@@ -123,7 +130,8 @@ public class Program
                         Password = "password@123", 
                         FirstName = "Charlie", 
                         LastName = "Brown", 
-                        Gender = "Male" 
+                        Gender = "Male",
+                        Role = "User"
                     }
                 });
 

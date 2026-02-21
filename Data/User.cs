@@ -13,5 +13,7 @@
         public string LastName { get; set; } = default!;
 
         public string Gender { get; set; } = default!;
+
+        public string Role { get; set; } = default!;
     }
 }
