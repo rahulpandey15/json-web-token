@@ -5,7 +5,7 @@ namespace IntroductionToAPI.Controllers
 {
     
     [Route("api/[controller]")]
-    [Authorize(Roles ="Admin")]
+    [Authorize(Roles = "Admin")]
     public class AdminController: Controller
     {
         [HttpGet]
